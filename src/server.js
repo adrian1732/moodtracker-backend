@@ -32,7 +32,7 @@ app.get('/api/articles/:name', async (req, res) => {
     }, res);
 })
 
-app.post('/api/articles/:name/upvote', async (req, res) => {
+app.post('/api/articles/upvote', async (req, res) => {
     withDB(async (db) => {
         const articleName = req.params.name;
     
@@ -57,6 +57,23 @@ app.post('/api/articles/:name/add-comment', (req, res) => {
         await db.collection('articles').updateOne({ name: articleName }, {
             '$set': {
                 comments: articleInfo.comments.concat({ username, text }),
+            },
+        });
+        const updatedArticleInfo = await db.collection('articles').findOne({ name: articleName });
+
+        res.status(200).json(updatedArticleInfo);
+    }, res);
+});
+
+app.post('/api/articles/:name/add-result', (req, res) => {
+    const { usernames, texts } = req.body;
+    const articleName = req.params.name;
+
+    withDB(async (db) => {
+        const articleInfo = await db.collection('articles').findOne({ name: articleName });
+        await db.collection('articles').updateOne({ name: articleName }, {
+            '$set': {
+                status: articleInfo.status.concat({ usernames, texts }),
             },
         });
         const updatedArticleInfo = await db.collection('articles').findOne({ name: articleName });
